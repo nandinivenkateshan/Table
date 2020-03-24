@@ -1,12 +1,13 @@
 const pool = require('./config')
 const bcrypt = require('bcrypt')
+const nodemailer = require('nodemailer')
 
 // User Details
 
 const createAcc = async (req, res) => {
-  const { username, email, pswd } = req.body
-  const hashedPswd = await bcrypt.hash(pswd, 10)
-  if (!username || !email || !pswd) {
+  const { username, email, password } = req.body
+  const hashedPswd = await bcrypt.hash(password, 10)
+  if (!username || !email || !password) {
     res.send('Please Enter the details')
   }
   if (!/^[a-z0-9A-Z ]+$/.test(username)) {
@@ -16,7 +17,7 @@ const createAcc = async (req, res) => {
     res.send('Email address is invalid')
   }
   try {
-    await pool.query('INSERT INTO signup (username, email, pswd) VALUES ($1,$2,$3)', [username, email, hashedPswd])
+    await pool.query('INSERT INTO signup (username, email, password) VALUES ($1,$2,$3)', [username, email, hashedPswd])
     res.send('Added user details successfully')
   } catch {
     res.send('Email already exist')
@@ -43,14 +44,76 @@ const login = async (req, res) => {
   }
   try {
     result = await pool.query('SELECT * FROM signup WHERE email=$1', [email])
-  } catch (e) {
-    return 'Unable to fetch user details'
+  } catch {
+    res.send('Unable to fetch user details')
   }
   if (result.rows.length === 0) {
     res.send('No User with this Email')
   }
-  if (!(await bcrypt.compare(pswd, result.rows[0].pswd))) {
+  if (!(await bcrypt.compare(pswd, result.rows[0].password))) {
     res.send('Password is incorrect')
+  }
+}
+
+const forgotPswd = async (req, res) => {
+  const { email } = req.body
+  let result
+  if (!email) {
+    res.send('Please Enter the details')
+  }
+
+  if (!/\S+@\S+\.\S+/.test(email)) {
+    res.send('Email address is invalid')
+  }
+
+  try {
+    result = await pool.query('SELECT * FROM signup WHERE email=$1', [email])
+  } catch {
+    res.send('unable to fetch user details')
+  }
+  if (result.rows.length === 0) {
+    res.send('No User with this Email')
+  }
+
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL,
+      pass: process.env.PASSWORD
+    }
+  })
+
+  console.log('transporter', transporter)
+
+  const mailOptions = {
+    from: '',
+    to: 'nandinivsa@gmail.com',
+    subject: 'Link to reset password',
+    text:
+    `please click the link below to reset your password.
+     If this was not you, it is safe to ignore this email.
+     http://localhost:3000/resetPswd
+    `
+  }
+
+  try {
+    const result = await transporter.sendMail(mailOptions)
+    console.log('result', result)
+    res.send('Email sent')
+  } catch (e) {
+    console.log('error', e)
+    res.send('Error while sending email')
+  }
+}
+
+const resetPswd = async (req, res) => {
+   console.log('resetPswd')
+  const { email, password } = req.body
+  try {
+    const response = await pool.query('UPDATE signup SET password=$2 WHERE email=$1',[email,password])
+    res.send('Password updated successfully')
+  } catch {
+    res.send('Error in updating password')
   }
 }
 
@@ -102,5 +165,7 @@ module.exports = {
   deleteRow,
   getUser,
   createAcc,
-  login
+  login,
+  forgotPswd,
+  resetPswd
 }

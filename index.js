@@ -8,6 +8,8 @@ app.use(express.json())
 app.post('/createAcc', db.createAcc)
 app.get('/getUser', db.getUser)
 app.post('/login', db.login)
+app.post('/forgotPswd', db.forgotPswd)
+app.patch('/resetPswd', db.resetPswd)
 
 // CRUD operation
 app.get('/getData', db.getData)

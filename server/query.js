@@ -83,8 +83,6 @@ const forgotPswd = async (req, res) => {
     }
   })
 
-  console.log('transporter', transporter)
-
   const mailOptions = {
     from: '',
     to: 'nandinivsa@gmail.com',
@@ -107,10 +105,10 @@ const forgotPswd = async (req, res) => {
 }
 
 const resetPswd = async (req, res) => {
-   console.log('resetPswd')
+  console.log('resetPswd')
   const { email, password } = req.body
   try {
-    const response = await pool.query('UPDATE signup SET password=$2 WHERE email=$1',[email,password])
+    const response = await pool.query('UPDATE signup SET password=$2 WHERE email=$1', [email, password])
     res.send('Password updated successfully')
   } catch {
     res.send('Error in updating password')
@@ -121,27 +119,28 @@ const resetPswd = async (req, res) => {
 const getData = async (req, res) => {
   try {
     const response = await pool.query('SELECT * FROM bankdetails')
-    res.status(200).json(response.rows)
+    res.status(200).send(response.rows)
   } catch {
     res.send('Error in fetching bank details')
   }
 }
 
 const insertData = async (req, res) => {
-  const { name, age, salary } = req.body
+  const { id, name, age, salary } = req.body
   try {
-    const response = pool.query('INSERT INTO bankdetails (name,age,salary) VALUES ($1,$2,$3)', [name, age, salary])
+    const response = pool.query('INSERT INTO bankdetails (id,name,age,salary) VALUES ($1,$2,$3,$4)', [id, name, age, salary])
     const result = await response
+    res.send('Added data successfully')
     console.log('result', result)
   } catch {
     res.send('Error while inserting details')
   }
 }
 
-const editName = async (req, res) => {
-  const { name, id } = req.body
+const editDetail = async (req, res) => {
+  const { id, value, data } = req.body
   try {
-    const response = await pool.query('UPDATE bankdetails SET name=$1 WHERE id=$2', [name, id])
+    const response = await pool.query(`UPDATE bankdetails SET ${data}=$1 WHERE id=$2`, [value, id])
     res.send(`updated ${response.rowCount} successfully`)
   } catch {
     res.send('Error in updating name')
@@ -161,7 +160,7 @@ const deleteRow = async (req, res) => {
 module.exports = {
   getData,
   insertData,
-  editName,
+  editDetail,
   deleteRow,
   getUser,
   createAcc,

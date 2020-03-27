@@ -93,7 +93,7 @@ const forgotPswd = async (req, res) => {
     text:
     `please click the link below to reset your password.
      If this was not you, it is safe to ignore this email.
-     http://localhost:3000/resetPswd
+     http://localhost:3001/resetPswd
     `
   }
 
@@ -109,6 +109,7 @@ const forgotPswd = async (req, res) => {
 
 const resetPswd = async (req, res) => {
   const { email, pswd, cpswd } = req.body
+  const hashedPswd = await bcrypt.hash(pswd, 10)
   let result
   try {
     result = await pool.query('SELECT * FROM signup WHERE email=$1', [email])
@@ -123,7 +124,7 @@ const resetPswd = async (req, res) => {
     res.send({ err: 'Passwords are not matching ' })
   }
   try {
-    const response = await pool.query('UPDATE signup SET password=$2 WHERE email=$1', [email, pswd])
+    const response = await pool.query('UPDATE signup SET password=$2 WHERE email=$1', [email, hashedPswd])
     res.send({ msg: 'Password updated successfully' })
   } catch {
     res.send({ err: 'Error in updating password' })

@@ -77,16 +77,17 @@ function App () {
 
   const handleEdit = (id, data) => {
     const value = window.prompt(`Enter ${data} to update`)
-    const editedDetails = details.map(item => {
-      if (item.id === id) {
-        item[data] = value
+    if (value) {
+      const editedDetails = details.map(item => {
+        if (item.id === id) {
+          item[data] = value
+          return item
+        }
         return item
-      }
-      return item
-    })
-    setDetails(editedDetails)
-    if (value) editDetail('http://localhost:3000/editDetail', { id, data, value: value })
-    // editDetail('http://localhost:3000/editDetail', { id, data })
+      })
+      setDetails(editedDetails)
+      if (value) editDetail('http://localhost:3000/editDetail', { id, data, value: value })
+    }
   }
 
   return (

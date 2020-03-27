@@ -6,21 +6,24 @@ const nodemailer = require('nodemailer')
 
 const createAcc = async (req, res) => {
   const { username, email, password } = req.body
+  console.log('req.body', req.body)
   const hashedPswd = await bcrypt.hash(password, 10)
   if (!username || !email || !password) {
-    res.send('Please Enter the details')
+    res.send({ response: 'Please Enter the details' })
   }
   if (!/^[a-z0-9A-Z ]+$/.test(username)) {
-    res.send('User Name is Invalid')
+    res.send({ response: 'User Name is Invalid' })
   }
   if (!/\S+@\S+\.\S+/.test(email)) {
-    res.send('Email address is invalid')
+    res.send({ response: 'Email address is invalid' })
   }
   try {
     await pool.query('INSERT INTO signup (username, email, password) VALUES ($1,$2,$3)', [username, email, hashedPswd])
-    res.send('Added user details successfully')
+    res.send({
+      res: 'Added user details successfully'
+    })
   } catch {
-    res.send('Email already exist')
+    res.send({ response: 'Email already exist' })
   }
 }
 

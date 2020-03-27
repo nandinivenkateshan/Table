@@ -108,13 +108,25 @@ const forgotPswd = async (req, res) => {
 }
 
 const resetPswd = async (req, res) => {
-  console.log('resetPswd')
-  const { email, password } = req.body
+  const { email, pswd, cpswd } = req.body
+  let result
   try {
-    const response = await pool.query('UPDATE signup SET password=$2 WHERE email=$1', [email, password])
-    res.send('Password updated successfully')
+    result = await pool.query('SELECT * FROM signup WHERE email=$1', [email])
+    console.log('result from resetPswd', result)
   } catch {
-    res.send('Error in updating password')
+    res.send({ err: 'unable to fetch user details' })
+  }
+  if (result.rows.length === 0) {
+    res.send({ err: 'No User with this Email' })
+  }
+  if (pswd !== cpswd) {
+    res.send({ err: 'Passwords are not matching ' })
+  }
+  try {
+    const response = await pool.query('UPDATE signup SET password=$2 WHERE email=$1', [email, pswd])
+    res.send({ msg: 'Password updated successfully' })
+  } catch {
+    res.send({ err: 'Error in updating password' })
   }
 }
 

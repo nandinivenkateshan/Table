@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import styled from 'styled-components'
-import { Redirect, Link } from 'react-router-dom'
+import { Redirect } from 'react-router-dom'
 
 const Heading = styled.h1`
 margin-top: 50px;
@@ -16,7 +16,7 @@ width: 500px;
 margin:100px auto;
 `
 const Button = styled.button`
-grid-area: 3/1/4/3;
+grid-area: 4/1/5/3;
 width: 100px;
 margin:auto;
 color: #388f38;
@@ -40,63 +40,55 @@ margin: auto;
 const Success = styled(Response)`
 color: green;
 `
-const ResetPswd = styled(Link)`
-grid-area: 4/1/5/3;
-margin: auto;
-`
 
-function Login () {
+function ResetPswd () {
   const [values, setValues] = useState({
     email: '',
-    pswd: ''
+    pswd: '',
+    cpswd: ''
   })
-
-  const [successMsg, setSuccessMsg] = useState('')
-  const [resMsg, setResMsg] = useState('')
+  const [isErr, setErr] = useState('')
+  const [success, setSuccess] = useState('')
   const [isRedirect, setRedirect] = useState(false)
 
   const handleInput = e => {
     e.persist()
     setValues({ ...values, [e.target.name]: e.target.value })
-    setResMsg('')
   }
 
   const handleSubmit = e => {
     e.preventDefault()
-    const obj = {
-      email: values.email,
-      pswd: values.pswd
-    }
-    login('http://localhost:3000/login', obj)
+    resetPswd('http://localhost:3000/resetPswd', values)
     setValues({
       email: '',
-      pswd: ''
+      pswd: '',
+      cpswd: ''
     })
   }
 
-  const login = async (url, data) => {
+  const resetPswd = async (url, data) => {
     const response = await window.fetch(url, {
-      method: 'Post',
       body: JSON.stringify(data),
+      method: 'Put',
       headers: {
         'Content-Type': 'application/json'
       }
     })
     const result = await response.json()
-    if (result.msg) {
-      setResMsg(result)
+    if (result.err) {
+      setErr(result.err)
     }
-    if (result.success) {
-      setSuccessMsg(result.success)
+    if (result.msg) {
+      setSuccess(result.msg)
       setTimeout(() => setRedirect(true), 1000)
-      setResMsg('')
+      setErr('')
     }
   }
 
   return (
     <main>
       <header>
-        <Heading>Login</Heading>
+        <Heading>Reset Password</Heading>
       </header>
       <section>
         <Form onSubmit={handleSubmit}>
@@ -109,29 +101,37 @@ function Login () {
             value={values.email}
             onChange={handleInput}
           />
-          <label htmlFor='pswd'>Password :</label>
+          <label htmlFor='pswd'>Enter Password :</label>
           <Input
             type='password'
-            placeholder='Enter Password'
+            placeholder='Enter password'
             name='pswd' id='pswd'
             required
             value={values.pswd}
             onChange={handleInput}
           />
-          <Button>Submit</Button>
-          <ResetPswd to='pswdSet'>Forgot Password</ResetPswd>
-          {resMsg &&
-            <Response>{resMsg.msg}</Response>}
-          {successMsg &&
+          <label htmlFor='cpswd'>Confirm Password :</label>
+          <Input
+            type='password'
+            placeholder='Confirm Password'
+            name='cpswd' id='cpswd'
+            required
+            value={values.cpswd}
+            onChange={handleInput}
+          />
+          <Button>Reset</Button>
+          {isErr &&
+            <Response>{isErr}</Response>}
+          {success &&
             <>
-              <Success>{successMsg}</Success>
-              {isRedirect && <Redirect to='/app' />}
-            </>}
+              <Success>{success}</Success>
+              {isRedirect && <Redirect to='/login' />}
 
+            </>}
         </Form>
       </section>
-
     </main>
   )
 }
-export default Login
+
+export default ResetPswd

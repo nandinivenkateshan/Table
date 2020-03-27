@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import styled from 'styled-components'
+import { Redirect, Link } from 'react-router-dom'
 
 const Heading = styled.h1`
 margin-top: 50px;
@@ -10,12 +11,12 @@ border: 1px solid grey;
 display: grid;
 grid-template-columns: 150px 300px;
 grid-row-gap: 20px;
-padding: 20px;
+padding: 40px 20px 20px 20px;
 width: 500px;
 margin:100px auto;
 `
 const Button = styled.button`
-grid-area: 4/1/5/3;
+grid-area: 3/1/4/3;
 width: 100px;
 margin:auto;
 color: #388f38;
@@ -35,23 +36,80 @@ const Response = styled.p`
 color: red;
 grid-area: 5/1/6/3;
 margin: auto;
-
 `
+const Success = styled(Response)`
+color: green;
+`
+const ResetPswd = styled(Link)`
+grid-area: 4/1/5/3;
+margin: auto;
+`
+
 function Login () {
+  const [values, setValues] = useState({
+    email: '',
+    pswd: ''
+  })
+
+  const [successMsg, setSuccessMsg] = useState('')
+  const [resMsg, setResMsg] = useState('')
+  const [isRedirect, setRedirect] = useState(false)
+
+  const handleInput = e => {
+    e.persist()
+    setValues({ ...values, [e.target.name]: e.target.value })
+    setResMsg('')
+  }
+
+  const handleSubmit = e => {
+    e.preventDefault()
+    const obj = {
+      email: values.email,
+      pswd: values.pswd
+    }
+    login('http://localhost:3000/login', obj)
+    setValues({
+      email: '',
+      pswd: ''
+    })
+  }
+
+  const login = async (url, data) => {
+    const response = await window.fetch(url, {
+      method: 'Post',
+      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    const result = await response.json()
+    if (result.msg) {
+      setResMsg(result)
+    }
+    if (result.success) {
+      setSuccessMsg(result.success)
+      setTimeout(() => setRedirect(true), 1000)
+      setResMsg('')
+    }
+  }
+
+ 
+
   return (
     <main>
       <header>
         <Heading>Login</Heading>
       </header>
       <section>
-        <Form>
+        <Form onSubmit={handleSubmit}>
           <label htmlFor='email'>Email :</label>
           <Input
             type='email'
             placeholder='Enter your email'
             name='email' id='email'
             required
-           
+            value={values.email}
+            onChange={handleInput}
           />
           <label htmlFor='pswd'>Password :</label>
           <Input
@@ -59,9 +117,19 @@ function Login () {
             placeholder='Enter Password'
             name='pswd' id='pswd'
             required
-         
+            value={values.pswd}
+            onChange={handleInput}
           />
           <Button>Submit</Button>
+          <ResetPswd to='pswdSet'>Forgot Password</ResetPswd>
+          {resMsg &&
+            <Response>{resMsg.msg}</Response>}
+          {successMsg &&
+            <>
+              <Success>{successMsg}</Success>
+              {isRedirect && <Redirect to='/app' />}
+            </>}
+        
         </Form>
       </section>
 

@@ -40,42 +40,42 @@ const login = async (req, res) => {
   let result
   const { email, pswd } = req.body
   if (!email || !pswd) {
-    res.send('Please Enter the details')
+    res.send({ msg: 'Please Enter the details' })
   }
   if (!/\S+@\S+\.\S+/.test(email)) {
-    res.send('Email address is invalid')
+    res.send({ msg: 'Email address is invalid' })
   }
   try {
     result = await pool.query('SELECT * FROM signup WHERE email=$1', [email])
   } catch {
-    res.send('Unable to fetch user details')
+    res.send({ msg: 'Unable to fetch user details' })
   }
   if (result.rows.length === 0) {
-    res.send('No User with this Email')
+    res.send({ msg: 'No User with this Email' })
   }
   if (!(await bcrypt.compare(pswd, result.rows[0].password))) {
-    res.send('Password is incorrect')
-  }
+    res.send({ msg: 'Password is incorrect' })
+  } else res.send({ success: 'Login Successfull' })
 }
 
 const forgotPswd = async (req, res) => {
   const { email } = req.body
   let result
   if (!email) {
-    res.send('Please Enter the details')
+    res.send({ err: 'Please Enter the details' })
   }
 
   if (!/\S+@\S+\.\S+/.test(email)) {
-    res.send('Email address is invalid')
+    res.send({ err: 'Email address is invalid' })
   }
 
   try {
     result = await pool.query('SELECT * FROM signup WHERE email=$1', [email])
   } catch {
-    res.send('unable to fetch user details')
+    res.send({ err: 'unable to fetch user details' })
   }
   if (result.rows.length === 0) {
-    res.send('No User with this Email')
+    res.send({ err: 'No User with this Email' })
   }
 
   const transporter = nodemailer.createTransport({
@@ -88,7 +88,7 @@ const forgotPswd = async (req, res) => {
 
   const mailOptions = {
     from: '',
-    to: 'nandinivsa@gmail.com',
+    to: email,
     subject: 'Link to reset password',
     text:
     `please click the link below to reset your password.
@@ -100,10 +100,10 @@ const forgotPswd = async (req, res) => {
   try {
     const result = await transporter.sendMail(mailOptions)
     console.log('result', result)
-    res.send('Email sent')
+    res.send({ msg: 'Email sent' })
   } catch (e) {
     console.log('error', e)
-    res.send('Error while sending email')
+    res.send({ err: 'Error while sending email' })
   }
 }
 

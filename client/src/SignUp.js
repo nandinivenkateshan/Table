@@ -97,7 +97,7 @@ function SignUp () {
         <Heading>Sign Up</Heading>
       </header>
       <section>
-        <Form className='form' onSubmit={handleSubmit}>
+        <Form onSubmit={handleSubmit}>
           <label htmlFor='name'>UserName :</label>
           <Input
             type='text'

@@ -6,7 +6,6 @@ const nodemailer = require('nodemailer')
 
 const createAcc = async (req, res) => {
   const { username, email, password } = req.body
-  console.log('req.body', req.body)
   const hashedPswd = await bcrypt.hash(password, 10)
   if (!username || !email || !password) {
     res.send({ response: 'Please Enter the details' })

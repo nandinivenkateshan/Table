@@ -147,8 +147,16 @@ const resetPswd = async (req, res) => {
 
 // CRUD Operation
 const getData = async (req, res) => {
+  let email
   try {
-    const response = await pool.query('SELECT * FROM bankdetails')
+    const response = await pool.query('SELECT email from session WHERE sid=$1', [req.query.sid])
+    email = response.rows[0].email
+    console.log('eamil', email)
+  } catch {
+    res.send({ err: 'Error in fecth particular data for user' })
+  }
+  try {
+    const response = await pool.query('SELECT * FROM bankdetails WHERE email = $1', [email])
     res.status(200).send(response.rows)
   } catch {
     res.send('Error in fetching bank details')
@@ -156,9 +164,17 @@ const getData = async (req, res) => {
 }
 
 const insertData = async (req, res) => {
-  const { id, name, age, salary } = req.body
+  const { id, name, age, salary, sid } = req.body
+  let email
   try {
-    const response = pool.query('INSERT INTO bankdetails (id,name,age,salary) VALUES ($1,$2,$3,$4)', [id, name, age, salary])
+    const response = await pool.query('SELECT email from session WHERE sid=$1', [sid])
+    email = response.rows[0].email
+  } catch {
+    res.send({ err: 'Error in fecth particular data for user' })
+  }
+
+  try {
+    const response = pool.query('INSERT INTO bankdetails (id,name,age,salary,email) VALUES ($1,$2,$3,$4, $5)', [id, name, age, salary, email])
     const result = await response
     res.send('Added data successfully')
     console.log('result', result)

@@ -54,7 +54,22 @@ const login = async (req, res) => {
   }
   if (!(await bcrypt.compare(pswd, result.rows[0].password))) {
     res.send({ msg: 'Password is incorrect' })
-  } else res.send({ success: 'Login Successfull' })
+  }
+
+  const sessionObj = {
+    active: true,
+    sid: email + Math.random()
+  }
+  try {
+    await pool.query('INSERT INTO session (email,active,sid) VALUES ($1,$2,$3)',
+      [email, sessionObj.active, sessionObj.sid])
+    res.send({
+      success: 'Login Successfull',
+      sessionObj
+    })
+  } catch {
+    res.send({ msg: 'Unable to add session id' })
+  }
 }
 
 const forgotPswd = async (req, res) => {

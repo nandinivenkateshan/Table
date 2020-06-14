@@ -147,6 +147,7 @@ const resetPswd = async (req, res) => {
 
 // CRUD Operation
 const getData = async (req, res) => {
+  console.log('getdata quer', req.query)
   let email
   try {
     const response = await pool.query('SELECT email from session WHERE sid=$1', [req.query.sid])

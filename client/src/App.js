@@ -3,6 +3,10 @@ import Form from './Form'
 import AddTable from './AddTable'
 
 function App () {
+  let sid
+  const session = JSON.parse(window.localStorage.getItem('session'))
+
+  if (session) sid = session.sid
   const [obj, setObj] = useState({
     name: '',
     age: '',
@@ -15,7 +19,7 @@ function App () {
   }, [])
 
   const fetchDetails = async () => {
-    const response = await window.fetch('http://localhost:3000/getData')
+    const response = await window.fetch(`http://localhost:5000/getData/?sid=${sid}`)
     const result = await response.json()
     setDetails(result)
   }
@@ -66,13 +70,13 @@ function App () {
       salary: obj.salary
     }
     setDetails([...details, object])
-    addDetails('http://localhost:3000/insertData', object)
+    addDetails('http://localhost:5000/insertData', object)
     setObj({ name: '', age: '', salary: '' })
   }
 
   const handleDelete = id => {
     setDetails(details.filter(item => item.id !== id))
-    deleteDetails('http://localhost:3000/deleteRow', id)
+    deleteDetails('http://localhost:5000/deleteRow', id)
   }
 
   const handleEdit = (id, data) => {
@@ -86,7 +90,7 @@ function App () {
         return item
       })
       setDetails(editedDetails)
-      if (value) editDetail('http://localhost:3000/editDetail', { id, data, value: value })
+      if (value) editDetail('http://localhost:5000/editDetail', { id, data, value: value })
     }
   }
 
